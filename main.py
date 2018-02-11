@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from crawler import MangaStreamCrawler as MStream
+from crawler import MangaStream as MStream
 
 
 
