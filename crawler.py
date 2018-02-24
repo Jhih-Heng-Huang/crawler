@@ -3,8 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 
 class Manga(object):
-	def __init__(self, main_url):
-		self.main_url = main_url
+	def __init__(self, manga_name):
+		raise NotImplementedError
 
 	def SelectChapter(self):
 		# gen a list of the URL of the chapter
@@ -37,8 +37,9 @@ class Manga(object):
 
 
 class MangaStream(Manga):
-	def __init__(self, main_url):
-		super(MangaStream, self).__init__(main_url)
+	def __init__(self, manga_name):
+		self.manga_name = manga_name
+		self.main_url = 'https://readms.net/manga/' + manga_name
 
 	def GenMangaChapts(self):
 		webpage = requests.get(self.main_url)
@@ -47,7 +48,7 @@ class MangaStream(Manga):
 			class_='table table-striped').find_all('a')
 		chapts = list()
 		for a in stack:
-			title = self.GenTitle(a.contents[0])
+			title = self.manga_name + '.' + self.GenTitle(a.contents[0])
 			url = self.GenRealURL(a['href'])
 			chapts.append((title, url))
 		chapts.reverse()
@@ -76,4 +77,41 @@ class MangaStream(Manga):
 		return 'https://readms.net' + re.sub(r'\d$', '', url)
 	def GetPageNum(self, url):
 		return 100
-		
+
+class JaiminisBox(Manga):
+	def __init__(self, manga_name):
+		self.manga_name = manga_name
+		self.main_url = 'https://jaiminisbox.com/reader/series/' + manga_name
+
+	def GenMangaChapts(self):
+		webpage = requests.get(self.main_url)
+		soup = BeautifulSoup(webpage.content, 'html.parser')
+		stack = soup.find_all('div', {'class': 'element'})
+		chapts = list()
+		for element in stack:
+			a = element.find('div', {'class': 'title'}).find('a')
+			title = self.manga_name + '.' + a['title']
+			url = self.GenRealURL(a['href'])
+			chapts.append((title, url))
+		chapts.reverse()
+		return chapts
+
+	def GenTitle(self, title):
+		return title
+	def GenRealURL(self, url):
+		return url + 'page/'
+	def GetPageNum(self, url):
+		return 100
+	def DownloadImg(self, chapt, page):
+		(title, url) = chapt
+		print url
+		webpage = requests.get(url + str(page), timeout=1)
+		# get the url of image in the page
+		soup = BeautifulSoup(webpage.content, 'html5lib')
+		image = soup.find('img', {'class': 'open'})
+		if not image:
+			print 'no page ' + str(page)
+			return False
+		else:
+			print image['src']
+			return True

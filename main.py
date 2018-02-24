@@ -1,10 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 from crawler import MangaStream as MStream
+from crawler import JaiminisBox as JBox
 
 def main():
-	manga_url = 'https://readms.net/manga/my_hero_academia'
-	manga = MStream(manga_url)
+	manga_name = 'my_hero_academia'
+	manga = MStream(manga_name)
 	manga.SelectChapter()
 
 
